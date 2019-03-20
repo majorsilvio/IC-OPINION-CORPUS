@@ -27,10 +27,8 @@ function getPages(){
 function createdPath($string){
 	$path = "";
 	$string = explode("/", $string);
-	// var_dump($string);
 	for ($i=0; $i < sizeof($string); $i++) { 
 		$path = $path.$string[$i]."/";
-		// echo $path;
 		if (!is_dir($path)) {
 			mkdir($path);
 		}
@@ -65,46 +63,55 @@ function getPage($link , $path){
 }
 
 function getComentsPages($file){
-	// global $file;
 	if (!is_dir("paginas")) {
 		mkdir('paginas');	
 	} 
-		$code = getCode($file);
-		$movieName = getName($file);
-		for ($i=1; ; $i++) { 
-			if (!is_dir("paginas/".$code."/")) {
-				mkdir("paginas/".$code."/");
-			}
-			if (file_exists("paginas/".$code."/last_page-$i")) {
-				break;
-			}
-			$jsonname = function($p) use($code, $movieName) { return "paginas/".$code."/".$movieName."-".$p.".json"; };
+	$code = getCode($file);
+	$movieName = getName($file);
+	for ($i=1; ; $i++) { 
+		if (!is_dir("paginas/".$code."/")) {
+			mkdir("paginas/".$code."/");
+		}
+		if (file_exists("paginas/".$code."/last_page-$i")) {
+			break;
+		}
+		$jsonname = function($p) use($code, $movieName) { return "paginas/".$code."/".$movieName."-".$p.".json"; };
 
-			if (is_file($jsonname($i)) && filesize($jsonname($i)) > 0) {
-				continue;
-			}
-			// echo "p$i, ";
+		if (is_file($jsonname($i)) && filesize($jsonname($i)) > 0) {
+			continue;
+		}
 
-			$doc=file_get_contents('https://filmow.com/async/comments/?content_type=22&object_pk='.$code.'&user=all&order_by=-created&page='.$i);
+		$doc=file_get_contents('https://filmow.com/async/comments/?content_type=22&object_pk='.$code.'&user=all&order_by=-created&page='.$i);
 
-			$json = json_decode($doc, true);
+		$json = json_decode($doc, true);
 
-			$ajax= fopen($jsonname($json['pagination']['current_page']), 'a+');
-			fwrite($ajax, $doc);
+		$ajax= fopen($jsonname($json['pagination']['current_page']), 'a+');
+		fwrite($ajax, $doc);
 
-			if ($json['pagination']['has_next'] == false) {
-				touch("paginas/".$code."/"."last_page-$i");
-				break;
-			}
+		if ($json['pagination']['has_next'] == false) {
+			touch("paginas/".$code."/"."last_page-$i");
+			break;
 		}
 	}
+}
 
 
-function getComents($comentsPage){
+function getComents($path){
 	$re = '/<p>(.*?)<.p>/m';
-	for ($i=1; ; $i++) { 
-		$page = $comentsPage."-".$i.".json";
-		if (is_file($page)) {
+	$diretorio = dir($path);
+	if (is_file('last')) {
+	$continue = file('last');
+	$last = $continue[0];
+	}
+
+	while($arquivo = $diretorio -> read()){		
+		$page = $path.$arquivo;
+		if (isset($last) && $page != $last) {
+			continue;
+		}
+		fwrite(fopen('last', 'w'), $page);
+
+		if (is_file($page) && filesize($page) > 0) {
 			$contents= file_get_contents($page);
 			preg_match_all($re, $contents, $matches, PREG_SET_ORDER, 0);
 			for ($j=0; $j < sizeof($matches); $j++) { 
@@ -113,12 +120,11 @@ function getComents($comentsPage){
 				$file=fopen('comentarios.csv', 'a+');
 				fwrite($file, $string);
 			}
-			// return $matches;
-			echo $i;
-		}else{
-			break;
+			echo $page."\n";		
 		}
+
 	}
+
 }
 
 function getSentences(){
@@ -126,7 +132,6 @@ function getSentences(){
 	$re = "/.*?\./";
 
 	for ($i=0; $i < sizeof($coments); $i++) { 
-		// $explode=explode('.', $coments[$i]);
 		preg_match_all($re, $coments[$i], $explode);
 		for ($j=0; $j < sizeof($explode[0]); $j++) { 
 			if (strlen($explode[0][$j]) > 1) {
