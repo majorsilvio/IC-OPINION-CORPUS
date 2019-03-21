@@ -129,16 +129,17 @@ function getComents($path){
 
 function getSentences(){
 	$coments = file('comentarios.csv');
-	$re = "/.*?\./";
+	$re = "/.*?[\S]{3,}[\.?!]{1,}(?=[\s]{0,})/";
 
 	for ($i=0; $i < sizeof($coments); $i++) { 
 		preg_match_all($re, $coments[$i], $explode);
 		for ($j=0; $j < sizeof($explode[0]); $j++) { 
 			if (strlen($explode[0][$j]) > 1) {
-				$file = fopen('teste.csv', 'a+');
-				fwrite($file, $explode[0][$j]."\n\n");
+				$file = fopen('sentences.txt', 'a+');
+				fwrite($file, $explode[0][$j]."\n");
 			}
+			echo $i."\n";
 		}
-		return $explode[0];
+		// return $explode[0];
 	}
 }
