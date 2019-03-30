@@ -133,13 +133,14 @@ function getSentences(){
 
 	for ($i=0; $i < sizeof($coments); $i++) { 
 		preg_match_all($re, $coments[$i], $explode);
-		for ($j=0; $j < sizeof($explode[0]); $j++) { 
-			if (strlen($explode[0][$j]) > 1) {
+		for ($j=0; $j < sizeof($explode[0]); $j++) {
+			$explode[0][$j] = preg_replace("/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\./", '', $explode[0][$j]); 
+			if (strlen($explode[0][$j]) > 0) {
+				$explode[0][$j] = mb_strtolower(trim($explode[0][$j]));
 				$file = fopen('sentences.txt', 'a+');
 				fwrite($file, $explode[0][$j]."\n");
 			}
 			echo $i."\n";
 		}
-		// return $explode[0];
 	}
 }
