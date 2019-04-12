@@ -1,6 +1,33 @@
 <?php 
 $file=file('links.csv');
 
+function getName($link){
+	$re = '/\/(.*[0-9]*)-.*\/$/';
+	preg_match($re, $link, $matches);
+	return $matches[1];
+}
+
+function getCode($link){
+	$re = '/([0-9]*)\/$/';
+	preg_match($re, $link, $code);
+	return $code[1];
+}
+
+function Path($link){
+	$path = "paginas/".getCode($link)."/";
+	return $path;
+}
+
+function createdPath($string){
+	$path = "";
+	$string = explode("/", $string);
+	for ($i=0; $i < sizeof($string); $i++) { 
+		$path = $path.$string[$i]."/";
+		if (!is_dir($path)) {
+			mkdir($path);
+		}
+	}
+}
 
 function getPages(){
 	global $file;
@@ -22,31 +49,6 @@ function getPages(){
 		getPage($file[$i],$path);
 
 	}
-}
-
-function createdPath($string){
-	$path = "";
-	$string = explode("/", $string);
-	for ($i=0; $i < sizeof($string); $i++) { 
-		$path = $path.$string[$i]."/";
-		if (!is_dir($path)) {
-			mkdir($path);
-		}
-	}
-}
-function getCode($link){
-	$re = '/([0-9]*)\/$/';
-	preg_match($re, $link, $code);
-	return $code[1];
-}
-function getName($link){
-	$re = '/\/(.*[0-9]*)-.*\/$/';
-	preg_match($re, $link, $matches);
-	return $matches[1];
-}
-function Path($link){
-	$path = "paginas/".getCode($link)."/";
-	return $path;
 }
 
 function getPage($link , $path){
@@ -100,8 +102,8 @@ function getComents($path){
 	$re = '/<p>(.*?)<.p>/m';
 	$diretorio = dir($path);
 	if (is_file('last')) {
-	$continue = file('last');
-	$last = $continue[0];
+		$continue = file('last');
+		$last = $continue[0];
 	}
 
 	while($arquivo = $diretorio -> read()){		
@@ -132,13 +134,13 @@ function getSentences(){
 	$re = "/.*?[\S]{3,}[\.?!]{1,}(?=[\s]{0,})/";
 
 	for ($i=0; $i < sizeof($coments); $i++) { 
-		preg_match_all($re, $coments[$i], $explode);
-		for ($j=0; $j < sizeof($explode[0]); $j++) {
-			$explode[0][$j] = preg_replace("/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\./", '', $explode[0][$j]); 
-			if (strlen($explode[0][$j]) > 0) {
-				$explode[0][$j] = mb_strtolower(trim($explode[0][$j]));
+		preg_match_all($re, $coments[$i], $frases);
+		for ($j=0; $j < sizeof($frases[0]); $j++) {
+			$frases[0][$j] = preg_replace("/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\./", '', $frases[0][$j]); 
+			if (str_word_count($frases[0][$j]) >= 3 ) {
+				$frases[0][$j] = mb_strtolower(trim($frases[0][$j]));
 				$file = fopen('sentences.txt', 'a+');
-				fwrite($file, $explode[0][$j]."\n");
+				fwrite($file, $frases[0][$j]."\n");
 			}
 			echo $i."\n";
 		}
