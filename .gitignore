@@ -4,3 +4,4 @@ comentarios.csv
 *.bat
 teste.*
 *.txt
+./.gitignore
