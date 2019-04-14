@@ -130,17 +130,20 @@ function getComents($path){
 }
 
 function getSentences(){
-	$coments = file('comentarios.csv');
+	$coments = file('./sentenças/comentarios.csv');
 	$re = "/.*?[\S]{3,}[\.?!]{1,}(?=[\s]{0,})/";
 
 	for ($i=0; $i < sizeof($coments); $i++) { 
-		preg_match_all($re, $coments[$i], $frases);
-		for ($j=0; $j < sizeof($frases[0]); $j++) {
-			$frases[0][$j] = preg_replace("/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\./", '', $frases[0][$j]); 
-			if (str_word_count($frases[0][$j]) >= 3 ) {
-				$frases[0][$j] = mb_strtolower(trim($frases[0][$j]));
+		preg_match_all($re, $coments[$i], $phrase);
+		for ($j=0; $j < sizeof($phrase[0]); $j++) {
+			$pattern = "/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\.|&.{2,4};|\.{1,}$/";
+			$phrase[0][$j] = preg_replace($pattern, '', trim($phrase[0][$j])); 
+			$number_of_words = explode(' ',$phrase[0][$j]);
+			$number_of_words  = sizeof($number_of_words);
+			if ($number_of_words >= 3 ) {
+				$phrase[0][$j] = mb_strtolower($phrase[0][$j]);
 				$file = fopen('sentences.txt', 'a+');
-				fwrite($file, $frases[0][$j]."\n");
+				fwrite($file, $phrase[0][$j]."\n");
 			}
 			echo $i."\n";
 		}
