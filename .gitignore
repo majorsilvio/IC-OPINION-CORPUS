@@ -6,4 +6,5 @@ teste*
 *.txt
 .gitignore
 extractions/
+extractions/*
 pages/
