@@ -186,6 +186,8 @@ class Controller
 				$pattern = "/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\.|\.{1,}$/";
 				$phrase[0][$j] = preg_replace($pattern, '', $phrase[0][$j]);
 
+				$phrase[0][$j] = html_entity_decode($phrase[0][$j]);
+
 				$number_of_words = explode(' ',$phrase[0][$j]);
 				$number_of_words  = sizeof($number_of_words);
 				
