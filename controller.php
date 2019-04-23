@@ -183,7 +183,7 @@ class Controller
 		for ($i=0; $i < sizeof($coments); $i++) { 
 			preg_match_all($re, $coments[$i], $phrase);
 			for ($j=0; $j < sizeof($phrase[0]); $j++) {
-				$pattern = "/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\.|\.{1,}$/";
+				$pattern = "/Esse recado foi MODERADO\.|Motivo: Infração dos Termos de Uso\.|[\.\s]{1,}$/";
 				$phrase[0][$j] = preg_replace($pattern, '', $phrase[0][$j]);
 
 				$phrase[0][$j] = html_entity_decode($phrase[0][$j]);
