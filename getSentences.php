@@ -1,5 +1,6 @@
 <?php
 
-require_once 'controle.php';
+require_once 'controller.php';
 
-getSentences();
+$getSentences = new Controller();
+$getSentences->getSentences();
