@@ -7,16 +7,21 @@ class Controller
 {
 
 	private $links;
-	private $rootPath = "pages";
+	private $rootPath;
 	
-	function __construct($links_file = "links.csv")
+	public function __construct($links_file = "links.csv",$rootPath = "pages")
 	{
 
+		$this->rootPath = $rootPath;
+		
 		if (is_file($links_file)) {
+
 			$this->links = file($links_file,FILE_IGNORE_NEW_LINES);	
+			
 			if (!is_dir($this->rootPath)) {
 				mkdir($this->rootPath);
 			}
+
 		}else{
 			echo "link file does not exist in the specified path.".PHP_EOL;
 		}
@@ -37,35 +42,41 @@ class Controller
 	}
 
 
-	function getName(int $link ,$re = "/\/(.*[0-9]*)-.*\/$/"){
+	public function getName(int $link ,$re = "/\/(.*[0-9]*)-.*\/$/"){
 
 		preg_match($re, $this->links[$link], $name);
 		
 		return $name[1];
 	}
 
-	function getCode(int $link ,$re = "/([0-9]*)\/$/" ){
+	public function getCode(int $link ,$re = "/([0-9]*)\/$/" ){
 
 		preg_match($re, $this->links[$link], $code);
 		
 		return $code[1];
 	}
 
-	function getPath(int $link){
+	public function getPath(int $link){
 
 		$path = $this->rootPath ."/".$this->getCode($link)."/";
 
 		return $path;
 	}
 
-	function createPath(int $link){
+	private function createPath(int $link){
 		$path = $this->getPath($link);
 		if (!is_dir($path)) {
 			mkdir($path);
 		}
 	}
 
-	function getPage(int $link){
+	private function progress_bar($done, $total, $info="", $width=50) {
+		$perc = round(($done * 100) / $total);
+		$bar = round(($width * $perc) / 100);
+		return sprintf("%s%%[%s>%s]%s\r", $perc, str_repeat("=", $bar), str_repeat(" ", $width-$bar), $info);
+	}
+
+	public function getPage(int $link){
 		
 		$path = $this->getPath($link);
 		$arq_name = $this->getName($link).".html";
@@ -86,22 +97,22 @@ class Controller
 
 	}
 
-	function getAllPages(){
+	public function getAllPages(){
 
 		for ($i=0; $i < sizeof($this->links); $i++) { 
 
-			echo $this->getPage($i);
+			$this->getPage($i);
+			echo $this->progress_bar($i,sizeof($this->links),"progress getAllPages");
 
 		}
 	}
 
-	function getComentsPages(int $link){
+	public function getComentsPages(int $link){
 
 		$path = $this->getPath($link);
 		$page_name = $this->getName($link);
 		$code = $this->getCode($link);
 		$arq_path = $path.$page_name;
-		echo $page_name.PHP_EOL;
 		for ($i=1; ; $i++) { 
 			$this->createPath($link);
 
@@ -121,7 +132,6 @@ class Controller
 			$ajax= fopen($jsonname($json['pagination']['current_page']), 'a+');
 			fwrite($ajax, $doc);
 
-			echo "		".$jsonname($i).PHP_EOL;
 			if ($json['pagination']['has_next'] == false) {
 				touch($path."last_page-$i");
 				break;
@@ -131,13 +141,14 @@ class Controller
 
 	}
 
-	function getAllComentsPages(){
+	public function getAllComentsPages(){
 		for ($i=0; $i < sizeof($this->links); $i++) { 
 			$this->getComentsPages($i);
+			echo $this->progress_bar($i,$this->links,"progress getAllComentsPages");
 		}
 	}
 
-	function getComents($re = '/<p>(.*?)<.p>/m'){
+	public function getComents($re = '/<p>(.*?)<.p>/m'){
 
 
 		$root = dir($this->rootPath);
@@ -173,11 +184,12 @@ class Controller
 
 			}
 
+
 		}
 
 	}
 
-	function getSentences($re = "/.*?[\S]{3,}[\.?!]{1,}(?=[\s]{0,})/"){
+	public function getSentences($re = "/.*?[\S]{3,}[\.?!]{1,}(?=[\s]{0,})/"){
 		$coments = file('./extractions/coments.csv', FILE_IGNORE_NEW_LINES);
 
 		for ($i=0; $i < sizeof($coments); $i++) { 
@@ -196,8 +208,26 @@ class Controller
 					$file = fopen('extractions/sentences.txt', 'a+');
 					fwrite($file, $phrase[0][$j]."\n");
 				}
-				echo $i."\n";
 			}
+		echo $this->progress_bar($i,sizeof($coments),"progress getSentences");
+		}
+	}
+
+	public function divide(int $number=1000){
+		$sentences = file('extractions/sentences.txt',FILE_IGNORE_NEW_LINES);
+
+		shuffle($sentences);
+		system("clear");
+		for ($i=0; $i < sizeof($sentences); $i++) { 
+			if ($i < $number) {
+				$treino = fopen('extractions/training.txt', 'a+');
+				fwrite($treino, $sentences[$i]);
+			}
+			else{
+				$teste = fopen('extractions/test.txt', 'a+');
+				fwrite($teste, $sentences[$i]);
+			}
+			echo $this->progress_bar($i,sizeof($sentences),"progress divide");
 		}
 	}
 
