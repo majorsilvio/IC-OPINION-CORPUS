@@ -213,19 +213,19 @@ class Controller
 		}
 	}
 
-	public function divide(int $number=1000){
-		$sentences = file('extractions/sentences.txt',FILE_IGNORE_NEW_LINES);
+	public function divide(int $number=1000,string $divide = "sentences.txt",string $arquivo1 = "training.txt", string $arquivo2 = "test.txt"){
+		$sentences = file('extractions/'.$divide,FILE_IGNORE_NEW_LINES);
 
 		shuffle($sentences);
 		system("clear");
 		for ($i=0; $i < sizeof($sentences); $i++) { 
 			if ($i < $number) {
-				$treino = fopen('extractions/training.txt', 'a+');
-				fwrite($treino, $sentences[$i]);
+				$treino = fopen('extractions/'.$arquivo1, 'a+');
+				fwrite($treino, $sentences[$i]."\n");
 			}
 			else{
-				$teste = fopen('extractions/test.txt', 'a+');
-				fwrite($teste, $sentences[$i]);
+				$teste = fopen('extractions/'.$arquivo2, 'a+');
+				fwrite($teste, $sentences[$i]."\n");
 			}
 			echo $this->progress_bar($i,sizeof($sentences),"progress divide");
 		}
